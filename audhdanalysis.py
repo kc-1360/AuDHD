@@ -22,7 +22,7 @@ class FinalAuDHDEstimator:
             'catq_assimilation': (35.0, 56.0, 1.1, 'ASD'),
             
             'asrs_part_a': (14.0, 24.0, 2.0, 'ADHD'),
-            'asrs_part_b': (6.0, 48.0, 1.2, 'ADHD'),
+            'asrs_part_b': (6.0, 12.0, 1.2, 'ADHD'),
             'baars_inattention': (12.0, 27.0, 1.5, 'ADHD'),
             'baars_hyperactivity_impulsivity': (18.0, 27.0, 1.6, 'ADHD'),
             'baars_sct': (12.0, 27.0, 1.6, 'ADHD'),
