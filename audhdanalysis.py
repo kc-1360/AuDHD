@@ -46,8 +46,7 @@ class FinalAuDHDEstimator:
         # Independent Intercepts for mathematical isolation
         self.intercept_asd = -15.4
         self.intercept_adhd = -9.4
-        self.intercept_audhd = -30.5
-        self.interaction_weight = 0.5 
+        self.interaction_weight = 0.8  # Slightly boosted to account for the new strict bottleneck
         
         # Likert Mapping
         self.likert_options = {
@@ -75,7 +74,6 @@ class FinalAuDHDEstimator:
             for subscale, data in self.subscales.items():
                 if data[3] == 'ASD':
                     name = subscale.replace('_', ' ').title().replace('Aq', 'AQ').replace('Catq', 'CAT-Q').replace('Raads', 'RAADS')
-                    # Max removed from prompt; enforced silently by UI; inputs forced to integers
                     scores[subscale] = st.number_input(f"{name}", min_value=0, max_value=int(data[1]), value=0, step=1)
 
         with col2:
@@ -133,7 +131,6 @@ class FinalAuDHDEstimator:
     def display_results(self, scores, custom_score):
         z_asd = self.intercept_asd
         z_adhd = self.intercept_adhd
-        z_audhd = self.intercept_audhd
         
         total_user_score = 0
         total_max_score = 0
@@ -152,23 +149,25 @@ class FinalAuDHDEstimator:
             
             if category == 'ASD':
                 z_asd += normalized_score * weight
-                z_audhd += normalized_score * weight
                 asd_composite += normalized_score
                 asd_max_composite += (max_score / threshold)
             elif category == 'ADHD':
                 z_adhd += normalized_score * weight
-                z_audhd += normalized_score * weight
                 adhd_composite += normalized_score
                 adhd_max_composite += (max_score / threshold)
 
-        # Apply Custom Variables to AuDHD specific equation
-        z_audhd += (custom_score / 12.0) * 6.0
-        total_user_score += custom_score
-        total_max_score += 20.0  
-
         # Apply Interaction Term
         interaction_effect = (asd_composite / 12.0) * (adhd_composite / 6.0) * self.interaction_weight
-        z_audhd += interaction_effect
+        
+        # COMORBIDITY BOTTLENECK: The "AND" Gate
+        # By taking the minimum of the two independent log-odds, we ensure that an 
+        # extremely high ASD score cannot falsely artificially inflate the comorbidity score 
+        # if the ADHD score is low (and vice versa).
+        z_audhd_base = min(z_asd, z_adhd)
+
+        # The custom AuDHD friction traits and the statistical interaction effect 
+        # are then added to this bottlenecked baseline.
+        z_audhd = z_audhd_base + ((custom_score / 12.0) * 3.0) + interaction_effect
 
         # Final Sigmoid Conversions
         prob_asd = 1 / (1 + math.exp(-z_asd))
@@ -181,9 +180,9 @@ class FinalAuDHDEstimator:
         st.header("📊 Independent Probabilities")
         
         col_a, col_b, col_c = st.columns(3)
-        col_a.metric("P(ASD)", f"{prob_asd * 100:.2f}%")
-        col_b.metric("P(ADHD)", f"{prob_adhd * 100:.2f}%")
-        col_c.metric("P(AuDHD)", f"{prob_audhd * 100:.2f}%")
+        col_a.metric("Probability of ASD", f"{prob_asd * 100:.2f}%")
+        col_b.metric("Probability of ADHD", f"{prob_adhd * 100:.2f}%")
+        col_c.metric("Probability of AuDHD", f"{prob_audhd * 100:.2f}%")
         
         st.progress(prob_asd, text="Isolated Autism Probability")
         st.progress(prob_adhd, text="Isolated ADHD Probability")
@@ -205,9 +204,9 @@ class FinalAuDHDEstimator:
             st.write("⚖️ **Co-Dominant / Balanced.** Neither neurotype significantly outpaces the other. Your profile is heavily balanced, which typically causes the highest internal friction.")
 
         # INTERACTION LOGIC
-        if interaction_effect > 1.5:
+        if prob_audhd > 0.70:
             st.success("High Interaction Detected: Your profile shows a strong statistical clash between high-structure needs and high-chaos traits. This friction is the hallmark of the AuDHD phenotype.")
-        elif interaction_effect > 0.5:
+        elif prob_audhd > 0.40:
             st.info("Moderate Interaction: Traits of both are present, but the paradoxical comorbidity clash is less severe.")
         else:
             st.warning("Low Interaction: The data suggests your traits fall predominantly along a single axis, lacking the compounding friction of a comorbidity.")
