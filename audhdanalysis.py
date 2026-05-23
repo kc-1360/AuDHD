@@ -22,7 +22,7 @@ class FinalAuDHDEstimator:
             'catq_assimilation': (35.0, 56.0, 1.1, 'ASD'),
             
             'asrs_part_a': (14.0, 24.0, 2.0, 'ADHD'),
-            'asrs_part_b': (25.0, 48.0, 1.2, 'ADHD'),
+            'asrs_part_b': (6.0, 48.0, 1.2, 'ADHD'),
             'baars_inattention': (12.0, 27.0, 1.5, 'ADHD'),
             'baars_hyperactivity_impulsivity': (18.0, 27.0, 1.6, 'ADHD'),
             'baars_sct': (12.0, 27.0, 1.6, 'ADHD'),
@@ -60,6 +60,15 @@ class FinalAuDHDEstimator:
     def run_ui(self):
         st.title("🧠 Advanced Clinical Estimator")
         st.markdown("This tool calculates the independent mathematical probabilities for ASD, ADHD, and the combined AuDHD phenotype.")
+        st.markdown("Please take the following quizzes before you start:")
+        st.markdown("https://autismtestonline.org/test/raads-r")
+        st.markdown("https://autismtestonline.org/test/aq-50")
+        st.markdown("https://autismtestonline.org/test/cat-q")
+        st.markdown("https://autismtestonline.org/test/cat-q")       
+        st.markdown("For ASRS Pt A: https://adhdquiz.com.au/asrs/") 
+        st.markdown("For ASRS Pt B: https://psychology-tools.com/test/adult-adhd-self-report-scale")
+        st.markdown("https://www.relationalpsych.group/quizzes/adhd-quiz")
+        st.markdown("https://adhdquiz.com.au/wurs/")
         
         st.divider()
 
